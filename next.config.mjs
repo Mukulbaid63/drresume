@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	webpack: (config) => {
+	webpack: config => {
 		config.resolve.alias.canvas = false;
 		config.resolve.fallback = {
 			...config.resolve.fallback,
