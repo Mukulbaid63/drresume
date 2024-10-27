@@ -5,31 +5,35 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 import {
-	BarChart2,
-	FileQuestion,
-	Loader2,
-	PenTool,
-	Plus,
-	Scale,
-	Sparkles,
-	Target,
-	ThumbsUp,
-	Upload,
+  BarChart2,
+  FileQuestion,
+  Loader2,
+  PenTool,
+  Plus,
+  Scale,
+  Sparkles,
+  Target,
+  ThumbsUp,
+  Upload,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import DotPattern from './ui/dot-pattern';
 import Marquee from './ui/marquee';
-import { RainbowButton } from './ui/rainbow-button';
+import Particles from './ui/particles';
 import ShimmerButton from './ui/shimmer-button';
+import ShineBorder from './ui/shine-border';
+import SparklesText from './ui/sparkles-text';
 
 const initialTechExperts = [
 	{
@@ -257,6 +261,23 @@ export function ResumeRoasterComponent() {
 	};
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-purple-50 to-yellow-50 flex flex-col items-center justify-between p-8">
+			<Particles
+				className="absolute inset-0"
+				quantity={200}
+				ease={80}
+				color={'#A07CFE'}
+				refresh
+			/>
+			<DotPattern
+				width={20}
+				height={20}
+				cx={1}
+				cy={1}
+				cr={1}
+				className={cn(
+					'[mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)] '
+				)}
+			/>
 			<div className="w-full max-w-4xl flex flex-col items-center text-center space-y-8">
 				<h1 className="text-5xl font-bold mt-20">Roast Your Resume</h1>
 				<p className="text-xl">
@@ -265,25 +286,35 @@ export function ResumeRoasterComponent() {
 				</p>
 				{!file && (
 					<div
-						className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+						className="w-full h-64 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
 						onDragOver={(e) => e.preventDefault()}
 						onDrop={handleDrop}
 						onClick={() => fileInputRef.current?.click()}
 					>
-						<Upload className="w-12 h-12 text-gray-400 mb-4" />
-						<p className="text-lg text-gray-600 mb-2">
-							Drag and drop your resume here
-						</p>
-						<p className="text-sm text-gray-500">
-							or click to select a file
-						</p>
-						<input
-							type="file"
-							ref={fileInputRef}
-							className="hidden"
-							accept=".pdf,.doc,.docx"
-							onChange={handleFileChange}
-						/>
+						<ShineBorder
+							className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background md:shadow-xl"
+							color={['#A07CFE', '#FE8FB5', '#FFBE7B']}
+						>
+							{/* <MagicCard
+								className="cursor-pointer flex flex-col items-center justify-center shadow-2xl whitespace-nowrap text-4xl"
+								gradientColor={'#D9D9D955'}
+							> */}
+							<Upload className="w-12 h-12 text-gray-400 mb-4" />
+							<p className="text-lg text-gray-600 mb-2">
+								Drag and drop your resume here
+							</p>
+							<p className="text-sm text-gray-500">
+								or click to select a file
+							</p>
+							<input
+								type="file"
+								ref={fileInputRef}
+								className="hidden"
+								accept=".pdf,.doc,.docx"
+								onChange={handleFileChange}
+							/>
+							{/* </MagicCard> */}
+						</ShineBorder>
 					</div>
 				)}
 				{file && !roast && !isRoasting && (
@@ -327,9 +358,11 @@ export function ResumeRoasterComponent() {
 							<Button
 								onClick={generateRoast}
 								disabled={!selectedExpert}
-								className="w-full bg-gray-900 hover:bg-gray-800 text-[white] text-lg font-bold"
 							>
-								Generate Free Roast Now
+								<SparklesText
+									text="Generate Free Roast Now"
+									className="w-full bg-gray-900 hover:bg-gray-800 text-[white] text-lg font-bold"
+								/>
 							</Button>
 						</CardContent>
 					</Card>
