@@ -29,6 +29,7 @@ import ShimmerButton from './ui/shimmer-button';
 import ShineBorder from './ui/shine-border';
 import SparklesText from './ui/sparkles-text';
 import { extractTextFromPDF } from '@/utils/pdfUtils';
+import { handleTweet, openTwitterConversation } from '@/app/utils';
 
 const initialTechExperts = [
 	{
@@ -232,7 +233,7 @@ export function ResumeRoasterComponent() {
 	};
 
 	const shareRoast = () => {
-		alert('Sharing functionality would be implemented here!');
+		handleTweet('Just got roasted by AI! 🤖🔥');
 	};
 
 	const handlePremiumAction = (action: string) => {
@@ -289,8 +290,7 @@ export function ResumeRoasterComponent() {
 			<div className="w-full max-w-4xl flex flex-col items-center text-center space-y-8">
 				<h1 className="text-5xl font-bold mt-20">Roast Your Resume</h1>
 				<p className="text-xl">Upload your resume and get a fun, insightful roast from tech experts</p>
-
-				{!file ? (
+				{!file && (
 					<div
 						className="w-full h-64 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
 						onDragOver={e => e.preventDefault()}
@@ -313,7 +313,8 @@ export function ResumeRoasterComponent() {
 							/>
 						</ShineBorder>
 					</div>
-				) : (
+				)}
+				{file && !roast && (
 					<Card className="w-full">
 						<CardContent className="pt-6">
 							<p className="text-center text-lg font-medium mb-4">File uploaded: {file.name}</p>
@@ -324,10 +325,10 @@ export function ResumeRoasterComponent() {
 								</div>
 							) : pdfText ? (
 								<div className="mt-4">
-									<h3 className="text-lg font-semibold mb-2">Extracted Text:</h3>
+									{/* <h3 className="text-lg font-semibold mb-2">Extracted Text:</h3>
 									<div className="max-h-48 overflow-y-auto p-4 bg-gray-50 rounded-lg">
 										<pre className="whitespace-pre-wrap font-sans">{pdfText}</pre>
-									</div>
+									</div> */}
 								</div>
 							) : null}
 
@@ -361,7 +362,6 @@ export function ResumeRoasterComponent() {
 						</CardContent>
 					</Card>
 				)}
-
 				{isRoasting && (
 					<div className="flex flex-col items-center space-y-4 w-full">
 						<Loader2 className="h-12 w-12 animate-spin text-gray-900" />
@@ -369,7 +369,6 @@ export function ResumeRoasterComponent() {
 						<Progress value={progress} className="w-full" />
 					</div>
 				)}
-
 				{roast && (
 					<>
 						<div className="w-full flex space-x-4">
@@ -450,14 +449,13 @@ export function ResumeRoasterComponent() {
 						</div>
 					</>
 				)}
-
 				<p className="text-sm text-gray-600">{roastCount} resume roasts generated and counting...</p>
 			</div>
 
 			<div className="w-full max-w-2xl flex flex-col items-center space-y-4">
 				<p className="text-sm text-gray-600">
 					To report bugs or request new features, please message us{' '}
-					<a href="#" className="underline">
+					<a href="#" className="underline" onClick={() => openTwitterConversation()}>
 						here
 					</a>
 					.
