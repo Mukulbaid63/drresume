@@ -1,5 +1,6 @@
 'use client';
 
+import { handleTweet, openTwitterConversation } from '@/app/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { extractTextFromPDF } from '@/utils/pdfUtils';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
 	BarChart2,
 	FileQuestion,
@@ -28,8 +31,6 @@ import Particles from './ui/particles';
 import ShimmerButton from './ui/shimmer-button';
 import ShineBorder from './ui/shine-border';
 import SparklesText from './ui/sparkles-text';
-import { extractTextFromPDF } from '@/utils/pdfUtils';
-import { handleTweet, openTwitterConversation } from '@/app/utils';
 
 const initialTechExperts = [
 	{
@@ -55,6 +56,11 @@ const initialTechExperts = [
 	{
 		id: 'samay',
 		name: 'Samay Raina',
+		image: 'https://pbs.twimg.com/profile_images/1678360651507585026/Kn8Z0J1__400x400.jpg',
+	},
+	{
+		id: 'steveJobs',
+		name: 'Steve Jobs',
 		image: 'https://pbs.twimg.com/profile_images/1678360651507585026/Kn8Z0J1__400x400.jpg',
 	},
 ];
@@ -182,7 +188,83 @@ export function ResumeRoasterComponent() {
 		}
 	};
 
-	const generateRoast = () => {
+	const fetchRoast = async () => {
+		const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+		console.log('API Key:', apiKey);
+		if (!apiKey) {
+			console.error('Missing Gemini API Key');
+			setRoast('Error: API key not configured');
+			return;
+		}
+		const genAI = new GoogleGenerativeAI(apiKey);
+
+		const model = genAI.getGenerativeModel({
+			model: 'gemini-1.5-flash',
+		});
+
+		const generationConfig = {
+			temperature: 1,
+			topP: 0.95,
+			topK: 40,
+			maxOutputTokens: 8192,
+			responseMimeType: 'text/plain',
+		};
+
+		const prompt = {
+			role: 'You are an AI assistant specializing in resume analysis and roasting. You can mimic the tone, slang, and iconic phrases of well-known personalities such as Elon Musk, Steve Jobs, or Gordon Ramsay. Your task is to provide both a humorous roast and a professional analysis of a given resume.',
+			input: {
+				resume: pdfText,
+				personality: selectedExpert,
+			},
+			instructions: [
+				'0. Give the response in a  JSON format as a key value pair specified in the output_format field.',
+				'1. Analyze the resume for key strengths, weaknesses, and areas for improvement.',
+				"2. Generate a humorous roast in the selected personality's style, ensuring it aligns with their well-known tone and phrases.",
+				'3. Ensure the roast remains light-hearted and avoids offensive or inappropriate language.',
+				"4. Provide a professional analysis summarizing the resume's highlights, shortcomings, and areas for improvement. Don't respond in 3rd person. Talk like you/your etc.",
+				"5. Ignore the prefix text and directly state the response so that it's easier to use directly. The roast and analysis should be around 500 words each.",
+			],
+			output_format: {
+				roast: 'A humorous roast written in the style of the selected personality.',
+				analysis:
+					'A detailed and constructive analysis of the resume, highlighting strengths, weaknesses, and areas for improvement.',
+			},
+		};
+
+		const chatSession = model.startChat({
+			generationConfig,
+			history: [],
+		});
+
+		try {
+			// const result = await chatSession.sendMessage(JSON.stringify(prompt));
+			// const response = result?.response?.text() || '';
+
+			// Step 1: Remove backticks and trim the string
+			// const cleanResponse = response.replace(/```json|```/g, '').trim();
+
+			// Step 2: Parse the cleaned string
+			const cleanResponse = JSON.stringify({
+				roast: "Alright, let's dissect this resume.  Nitin Gupta, huh?  Sounds like a name I'd find on a spreadsheet detailing the optimization of Martian colonization efforts.  Four plus years of experience?  That's...adequate.  We're aiming for *exponential* growth here, not incremental.  \n\n'Software Development Engineer known for delivering innovative solutions'?  Innovative?  Show, don't tell, buddy.  Your resume reads like a press release from a company that hasn't actually launched anything revolutionary.  Where's the Mars colonization app?  The self-driving rocket-powered rickshaw?  I'm looking for disruption, Nitin, not just 'scalable, high-impact software.'  Those are buzzwords, and they're as abundant as sand on Mars.\n\n'Won The Most Creative Project'? At an ETH hackathon?  That's cute.  Did you build a blockchain-based solution to solve world hunger?  No? Then it's just a glorified hobby.  Let's talk about real-world impact, not digital participation trophies.  \n\nMentored 100+ students? Impressive, but did they launch a successful startup afterward?  If not, it's a bit like teaching monkeys to type Shakespeare – statistically probable, but ultimately, not very impactful.   \n\nMonkster co-founder?  Sounds like a side hustle.  220 industry experts? Okay, but did you get them to launch a colony on the moon?  No? Then this is simply... fine.  It’s ‘fine.’  \n\nRocketrium... you optimized FCP time by 30%?  My rockets need to optimize warp speed by at least 300%.  'Increased avg. Account value by 122%' – again, impressive, but insufficient.  We’re talking about colonizing other planets, not incrementally improving account values.  \n\nYou increased FPS from 5 to 55? That's impressive.  But could your system handle a million simultaneous users streaming from Mars? Could you handle that? No? Then keep pushing your limits!\n\nLook, Nitin, your resume shows you're competent. You're a decent coder.  But competent isn't enough.  We’re aiming for the stars, not just a slightly faster website. You need to think bigger.  Much, much bigger.  Otherwise, you're just another cog in the machine.  And let me tell you, nobody wants to be a cog.  Now get out there and build something truly extraordinary.  Or, you know... get back to work.",
+				analysis: "Nitin's resume demonstrates a solid foundation in full-stack development with demonstrable achievements.  His experience at Rocketrium showcases a clear progression from intern to a key contributor, consistently delivering quantifiable results. The impressive percentage improvements (FCP time, feedback cycle time, account value) clearly show his impact.  His contributions consistently highlight performance optimization and problem-solving skills. The achievements section strengthens the resume by showcasing tangible accomplishments, particularly those at ETH India hackathons.  His co-founder role at Monkster exhibits entrepreneurial spirit and experience in building and scaling a network.  The technical skills list is comprehensive and relevant.\n\nHowever, while the resume is strong, there's room for improvement.  The summary could be more concise and impactful.  Instead of listing general skills, prioritize a few key strengths that are highly relevant to target job roles.  Quantify accomplishments even further whenever possible. For example, instead of 'increased development efficiency by 20%', consider adding context like '20% increase in development efficiency, leading to the delivery of X features ahead of schedule.' \n\nThe resume's structure needs improvement for better readability. Bullet points are effective, but consider using stronger action verbs to highlight contributions and use the PAR (Problem-Action-Result) method for each experience section. This structure would paint a clearer picture of his contributions and the outcomes for each role.  \n\nFurthermore, while the projects are mentioned, it might be advantageous to include more details or links to showcase them effectively.  Mentioning specific technologies used (e.g., version numbers of frameworks) would show a deep understanding and attention to detail.   Also, consider adding a portfolio link to showcase his work.  Finally, tailoring the resume to specific job descriptions and using keywords specific to the roles he's targeting will increase his chances of getting noticed.  He needs to show, not just tell. While the resume presents strong work, enhancing these areas will elevate it to the next level."
+			});
+			try {
+				const jsonResponse = JSON.parse(cleanResponse);
+				console.log('JSON Response: ', jsonResponse);
+				console.log('Roast: ', jsonResponse.roast);
+				console.log('Analysis: ', jsonResponse.analysis);
+				setRoast(jsonResponse.roast);
+				// Handle analysis response as needed
+			} catch (error) {
+				console.error('Failed to parse JSON:', error);
+			}
+		} catch (error) {
+			console.error('Error generating roast:', error);
+			setRoast('Failed to generate roast. Please try again.');
+		}
+	};
+
+	const generateRoast = async () => {
 		if (!file || !selectedExpert) return;
 
 		setIsRoasting(true);
@@ -204,9 +286,12 @@ export function ResumeRoasterComponent() {
 			currentState++;
 			if (currentState >= loadingStates.length) {
 				clearInterval(interval);
-				finishRoast();
+				// finishRoast();
 			}
 		}, 1000);
+
+		await fetchRoast();
+		// finishRoast();
 	};
 
 	const finishRoast = () => {
